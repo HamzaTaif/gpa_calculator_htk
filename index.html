@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UET GPA Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Brand Bar -->
+<div class="brand-bar">
+  <div class="brand-left">
+    <div class="htk-logo" style="width:36px;height:36px;font-size:.72rem;border-radius:8px;">HTK</div>
+    <div>
+      <div class="brand-name">UET GPA Calculator</div>
+      <div class="brand-sub">University of Engineering & Technology</div>
+    </div>
+  </div>
+</div>
+
+<!-- Page Title -->
+<div class="page-title">
+  <h1>GPA & CGPA Calculator</h1>
+  <p>Calculate your semester GPA and cumulative CGPA using the UET grading system.</p>
+</div>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('calculator')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+    GPA Calculator
+  </button>
+  <button class="tab-btn" onclick="switchTab('cgpa')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    CGPA Update
+  </button>
+  <button class="tab-btn" onclick="switchTab('grades')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Grade Scale
+  </button>
+</div>
+
+<!-- TAB: Calculator -->
+<div class="card tab-panel active" id="tab-calculator">
+  <div class="three-col-btn">
+    <div style="grid-column:1/3">
+      <label class="field-label">Number of Subjects</label>
+      <input type="number" id="numSubjects" min="1" max="20" placeholder="e.g. 6">
+    </div>
+    <div>
+      <button class="btn btn-primary" onclick="generateFields()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Generate
+      </button>
+    </div>
+  </div>
+
+  <div id="subjectsContainer" style="margin-top:1.25rem;"></div>
+
+  <hr class="divider">
+
+  <button class="btn btn-success" onclick="calculateGPA()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Calculate GPA
+  </button>
+
+  <div id="resultSection" style="margin-top:1.25rem;">
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.4rem;">
+      <div class="result-header"><span></span> Calculation Results</div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val c-blue" id="res-gpa">—</div>
+          <div class="stat-lbl">Semester GPA</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val c-amber" id="res-cred">—</div>
+          <div class="stat-lbl">Credit Hours</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val c-green" id="res-cgpa">—</div>
+          <div class="stat-lbl">CGPA</div>
+        </div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-meta">
+          <span>0.00</span>
+          <span id="bar-label" style="color:#d1d5db;font-weight:600;">—</span>
+          <span>4.00</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: CGPA Update -->
+<div class="card tab-panel" id="tab-cgpa">
+  <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">
+    Already have a CGPA from previous semesters? Enter your previous CGPA and total credit hours here, then go back to the <strong style="color:var(--text)">GPA Calculator</strong> tab and hit Calculate — your updated CGPA will be computed automatically.
+  </p>
+  <div class="two-col">
+    <div>
+      <label class="field-label">Previous CGPA</label>
+      <input type="number" step="0.01" id="prevGPA" placeholder="e.g. 3.20">
+    </div>
+    <div>
+      <label class="field-label">Previous Total Credit Hours</label>
+      <input type="number" id="prevCredits" placeholder="e.g. 72">
+    </div>
+  </div>
+  <hr class="divider">
+  <div class="info-block">
+    <strong>How CGPA is calculated:</strong><br>
+    CGPA = (Previous CGPA × Previous Credits + Semester Grade Points) ÷ (Previous Credits + Semester Credits)<br><br>
+    Leave both fields blank if you are computing GPA for your first semester only.
+  </div>
+  <button class="btn btn-primary" style="max-width:220px;" onclick="switchTab('calculator')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Calculator
+  </button>
+</div>
+
+<!-- TAB: Grade Scale -->
+<div class="card tab-panel" id="tab-grades">
+  <div class="info-block" style="margin-bottom:1.25rem;">
+    UET follows a <strong>4.00 scale</strong> grading system. The table below shows the letter grade to grade point mapping used in all calculations.
+  </div>
+  <table class="grade-table">
+    <thead>
+      <tr>
+        <th>Letter Grade</th>
+        <th>Grade Points</th>
+        <th>Performance</th>
+      </tr>
+    </thead>
+    <tbody id="gradeTableBody"></tbody>
+  </table>
+</div>
+
+<!-- About Section -->
+<div class="about-section">
+  <div class="about-grid">
+    <div class="about-col">
+      <h3>About This Tool</h3>
+      <p>A lightweight academic utility built for students of the University of Engineering & Technology. It helps you quickly calculate your semester GPA and running CGPA using the official UET 4.00 grading scale.</p>
+    </div>
+    <div class="about-col">
+      <h3>Features</h3>
+      <ul>
+        <li>Supports up to 20 subjects per semester</li>
+        <li>Official UET A–F grade point scale</li>
+        <li>Cumulative CGPA with prior semester data</li>
+        <li>Works fully offline in your browser</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="htk-wrap">
+    <div class="htk-logo">HTK</div>
+    <div class="htk-text">Made by <strong>HTK</strong> &nbsp;·&nbsp; UET GPA Calculator</div>
+  </div>
+  <div class="footer-right">v1.0 &nbsp;·&nbsp; Academic Use Only</div>
+</div>
+
+<div id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
