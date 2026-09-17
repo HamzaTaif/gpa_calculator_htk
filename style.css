@@ -950,8 +950,9 @@ body {
   color: var(--text-dim);
   border-top: 1px solid var(--border);
   padding-top: 6px;
-  max-height: 100px;
+  max-height: 260px;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .transcript-totals-card {
@@ -1146,7 +1147,8 @@ input[type="number"]:focus, input[type="text"]:focus {
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 1rem;
+  padding: 1.5rem;
+  overflow-y: auto;
 }
 
 .modal-overlay.active {
@@ -1156,14 +1158,14 @@ input[type="number"]:focus, input[type="text"]:focus {
 .modal-card {
   width: 100%;
   max-width: 780px;
-  max-height: 85vh;
+  max-height: 90vh;
   background: var(--surface-solid);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .modal-header {

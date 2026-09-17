@@ -402,7 +402,7 @@
   </div>
 
   <!-- Department Selection Modal -->
-  <div class="modal-overlay" id="deptModal">
+  <div class="modal-overlay" id="deptModal" onclick="if(event.target === this) closeDeptModal()">
     <div class="modal-card">
       <div class="modal-header">
         <div>
@@ -419,7 +419,7 @@
   </div>
 
   <!-- Interactive Print Modal Dialog (Asks Name, Father's Name, Roll/Registration No) -->
-  <div class="modal-overlay" id="printModal">
+  <div class="modal-overlay" id="printModal" onclick="if(event.target === this) closePrintModal()">
     <div class="modal-card" style="max-width: 500px;">
       <div class="modal-header">
         <div>

@@ -913,10 +913,12 @@ function renderTranscript() {
 function openPrintModal() {
   syncStudentProfileInputs();
   document.getElementById("printModal").classList.add("active");
+  document.body.style.overflow = "hidden";
 }
 
 function closePrintModal() {
   document.getElementById("printModal").classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 function confirmAndPrintTranscript() {
@@ -1312,10 +1314,12 @@ function calculateCustomGpa() {
 // ── Department Modal UI ───────────────────────────────────────────
 function openDeptModal() {
   document.getElementById("deptModal").classList.add("active");
+  document.body.style.overflow = "hidden";
 }
 
 function closeDeptModal() {
   document.getElementById("deptModal").classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 function renderDeptModalGrid() {
@@ -1346,11 +1350,23 @@ function switchMainTab(tabName) {
   document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
 
-  document.getElementById(`tab-${tabName}`).classList.add("active");
+  const targetTab = document.getElementById(`tab-${tabName}`);
+  if (targetTab) {
+    targetTab.classList.add("active");
+    if (tabName === "transcript") {
+      renderTranscript();
+    }
+  }
+
   const activeBtn = Array.from(document.querySelectorAll(".tab-item")).find(btn => 
     btn.getAttribute("onclick")?.includes(tabName)
   );
   if (activeBtn) activeBtn.classList.add("active");
+
+  const tabNav = document.querySelector(".tab-navigation");
+  if (tabNav) {
+    tabNav.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 // ── Grade Scale Reference Table ─────────────────────────────────
