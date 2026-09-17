@@ -456,6 +456,27 @@ body {
   border-radius: 99px;
 }
 
+/* ── Student Info Editor Box ────────────────────────────────── */
+.student-info-editor-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+}
+
+.student-info-editor-box h4 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
 /* ── Summer Notice Card ──────────────────────────────────────── */
 .summer-notice-card {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(17, 24, 39, 0.9));
@@ -1267,6 +1288,146 @@ input[type="number"]:focus, input[type="text"]:focus {
   border-radius: 4px;
 }
 
+/* ── OFFICIAL UET TRANSCRIPT TEMPLATE (SSR_TSRPT.pdf 100% REPLICA) ── */
+#officialUetTranscriptPrintContainer {
+  display: none;
+  width: 100%;
+  background: #ffffff;
+  color: #000000;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 20px;
+}
+
+.uet-pdf-header {
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.uet-pdf-header h1 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  color: #000000;
+}
+
+.uet-pdf-header h2 {
+  font-size: 13px;
+  font-weight: normal;
+  color: #000000;
+}
+
+.uet-pdf-reg-no {
+  position: absolute;
+  right: 0;
+  top: 15px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.uet-pdf-title-banner {
+  border: 1px solid #000000;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 3px 0;
+  margin-bottom: 6px;
+}
+
+.uet-pdf-student-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  margin-bottom: 12px;
+  font-size: 11px;
+}
+
+.uet-pdf-student-info span {
+  font-weight: bold;
+}
+
+.uet-pdf-semesters-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.uet-pdf-sem-block {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.uet-pdf-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #000000;
+  font-size: 10.5px;
+}
+
+.uet-pdf-table th {
+  border: 1px solid #000000;
+  padding: 2px 6px;
+  text-align: left;
+  font-weight: bold;
+}
+
+.uet-pdf-table td {
+  border-left: 1px solid #000000;
+  border-right: 1px solid #000000;
+  padding: 2px 6px;
+}
+
+.uet-pdf-sem-title-row {
+  text-align: center;
+  font-weight: bold;
+  border: 1px solid #000000;
+  background: #f0f0f0;
+  padding: 2px 0;
+}
+
+.uet-pdf-summary-box {
+  border: 1px solid #000000;
+  border-top: none;
+  padding: 3px 12px;
+  font-weight: bold;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.uet-pdf-summary-line {
+  display: flex;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.uet-pdf-signatures-footer {
+  margin-top: 30px;
+  font-size: 10px;
+}
+
+.uet-pdf-stamp-notice {
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.uet-pdf-sign-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: end;
+}
+
+.uet-pdf-line {
+  border-bottom: 1px solid #000000;
+  display: inline-block;
+  width: 200px;
+}
+
 /* ── Print Media Stylesheet ──────────────────────────────────── */
 @media print {
   body {
@@ -1274,29 +1435,15 @@ input[type="number"]:focus, input[type="text"]:focus {
     color: #000000 !important;
     padding: 0 !important;
   }
-  .brand-navbar, .cgpa-summary-card, .tab-navigation, .batch-grade-actions, .app-footer, .header-actions, .modal-overlay, #toast {
+  .app-container, .modal-overlay, #toast {
     display: none !important;
   }
-  .app-container {
-    max-width: 100% !important;
-  }
-  .tab-content {
+  #officialUetTranscriptPrintContainer {
     display: block !important;
   }
-  .section-card, .subjects-card {
-    border: 1px solid #ddd !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  .subject-row {
-    border-bottom: 1px solid #eee !important;
-  }
-  .grade-select {
-    border: none !important;
-    background: transparent !important;
-    color: #000000 !important;
-    appearance: none !important;
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
   }
 }
 
@@ -1311,7 +1458,7 @@ input[type="number"]:focus, input[type="text"]:focus {
     width: 100%;
     justify-content: space-between;
   }
-  .cgpa-stats-grid, .uet-rules-summary {
+  .cgpa-stats-grid, .uet-rules-summary, .form-grid-3 {
     grid-template-columns: 1fr;
   }
   .subjects-table-header {

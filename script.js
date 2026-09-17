@@ -1,7 +1,8 @@
 /**
  * UET GPA & CGPA Portal Core Engine
  * Manages reactive state, localStorage memory, curriculum rendering,
- * Theory & Lab (1 CH) Course Splitting, Summer Semesters, Course Repeats, and Target Simulation.
+ * Theory & Lab (1 CH) Course Splitting, Summer Semesters, Course Repeats, Target Simulation,
+ * and Official UET Transcript Generator (SSR_TSRPT.pdf 100% Exact Replica).
  */
 
 // ── App State ──────────────────────────────────────────────────
@@ -12,6 +13,9 @@ let appState = {
   labSplits: {}, // Structure: { [deptId]: { [semIndex]: { [courseIdx]: true } } }
   autoSplitAllLabs: false,
   summerCourses: {},
+  studentName: "Hamza Taif",
+  fatherName: "Taif Ullah",
+  studentRegNo: "25PWSWE0094",
   customCourses: [
     { name: "Subject 1", credits: 3, grade: "A" },
     { name: "Subject 2", credits: 3, grade: "B+" }
@@ -20,7 +24,7 @@ let appState = {
   customPrevCredits: null
 };
 
-const STORAGE_KEY = "uet_gpa_portal_state_v4";
+const STORAGE_KEY = "uet_gpa_portal_state_v5";
 
 // ── DOM Initialization ──────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
@@ -29,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGradeScaleTable();
   setActiveDepartment(appState.selectedDeptId, false);
   renderCustomCourses();
+  syncStudentProfileInputs();
 });
 
 // ── LocalStorage Engine ─────────────────────────────────────────
@@ -52,8 +57,25 @@ function loadStateFromStorage() {
   }
 }
 
+function syncStudentProfileInputs() {
+  const sName = document.getElementById("studentNameInput");
+  const fName = document.getElementById("fatherNameInput");
+  const rNo = document.getElementById("regNoInput");
+
+  if (sName) sName.value = appState.studentName || "Hamza Taif";
+  if (fName) fName.value = appState.fatherName || "Taif Ullah";
+  if (rNo) rNo.value = appState.studentRegNo || "25PWSWE0094";
+}
+
+function saveStudentProfile() {
+  appState.studentName = document.getElementById("studentNameInput").value;
+  appState.fatherName = document.getElementById("fatherNameInput").value;
+  appState.studentRegNo = document.getElementById("regNoInput").value;
+  saveStateToStorage();
+}
+
 function resetAllData() {
-  if (confirm("Are you sure you want to reset all saved grades and summer semester data? This action cannot be undone.")) {
+  if (confirm("Are you sure you want to reset all saved grades and transcript data? This action cannot be undone.")) {
     localStorage.removeItem(STORAGE_KEY);
     appState.grades = {};
     appState.summerCourses = {};
@@ -375,8 +397,6 @@ function renderSummerSemesterView() {
     const row = document.createElement("div");
     row.className = "subject-row";
     row.style.gridTemplateColumns = "1.2fr 100px 140px 40px";
-
-    const pts = item.grade ? (UET_GRADE_SCALE[item.grade]?.points || 0) : 0;
 
     row.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:4px;">
@@ -875,6 +895,248 @@ function renderTranscript() {
   document.getElementById("trFinalCgpa").textContent = `${stats.cgpa.toFixed(2)} / 4.00`;
 }
 
+// ── OFFICIAL UET TRANSCRIPT GENERATOR (SSR_TSRPT.pdf 100% REPLICA) ──────
+function generateOfficialUetTranscriptHTML() {
+  const dept = getActiveDept();
+  const deptGrades = appState.grades[dept.id] || {};
+  const deptSummer = appState.summerCourses[dept.id] || {};
+  const deptLabSplits = appState.labSplits[dept.id] || {};
+
+  const studentName = appState.studentName || "Hamza Taif";
+  const fatherName = appState.fatherName || "Taif Ullah";
+  const regNo = appState.studentRegNo || "25PWSWE0094";
+
+  // Semester Names (Fall 25, Spring 26, Summer 26, Fall 26, Spring 27, Summer 27...)
+  const semNames = ["Fall 25", "Spring 26", "Fall 26", "Spring 27", "Fall 27", "Spring 28", "Fall 28", "Spring 29", "Fall 29", "Spring 30"];
+  const summerNames = ["Summer 26", "Summer 27", "Summer 28", "Summer 29"];
+
+  let runningCumulativeCredits = 0;
+  let runningCumulativePoints = 0;
+
+  let semBlocksHTML = "";
+
+  // Helper to generate UET Course Codes
+  const codePrefix = dept.code.startsWith("SE") ? "SE" : (dept.code.startsWith("CS") ? "CS" : "CE");
+
+  dept.semesters.forEach((sem, semIdx) => {
+    const semGrades = deptGrades[semIdx] || {};
+    const semLabSplits = deptLabSplits[semIdx] || {};
+
+    let semSch = 0;
+    let semSgp = 0;
+    let courseRowsHTML = "";
+
+    sem.courses.forEach((c, cIdx) => {
+      const isSplit = semLabSplits[cIdx] || (appState.autoSplitAllLabs && c.hasLab && c.credits > 1);
+      const baseCode = `${codePrefix} 10${semIdx + 1}${cIdx + 1}`;
+
+      if (isSplit && c.credits > 1) {
+        const thG = semGrades[`${cIdx}_th`] || "";
+        const labG = semGrades[`${cIdx}_lab`] || "";
+
+        const thCr = c.credits - 1;
+        const labCr = 1;
+
+        if (thG) {
+          const pts = (UET_GRADE_SCALE[thG]?.points || 0) * thCr;
+          semSch += thCr;
+          semSgp += pts;
+          courseRowsHTML += `
+            <tr>
+              <td style="width:70px;">${baseCode}</td>
+              <td>${c.name}</td>
+              <td style="width:50px; text-align:center;">${thCr.toFixed(2)}</td>
+              <td style="width:60px; text-align:center;">${thG}</td>
+            </tr>
+          `;
+        }
+        if (labG) {
+          const pts = (UET_GRADE_SCALE[labG]?.points || 0) * labCr;
+          semSch += labCr;
+          semSgp += pts;
+          courseRowsHTML += `
+            <tr>
+              <td style="width:70px;">${baseCode}L</td>
+              <td>${c.name}</td>
+              <td style="width:50px; text-align:center;">${labCr.toFixed(2)}</td>
+              <td style="width:60px; text-align:center;">${labG}</td>
+            </tr>
+          `;
+        }
+      } else {
+        const g = semGrades[cIdx] || "";
+        if (g) {
+          const pts = (UET_GRADE_SCALE[g]?.points || 0) * c.credits;
+          semSch += c.credits;
+          semSgp += pts;
+          const codeStr = c.isLabOnly ? `${baseCode}L` : baseCode;
+          courseRowsHTML += `
+            <tr>
+              <td style="width:70px;">${codeStr}</td>
+              <td>${c.name}</td>
+              <td style="width:50px; text-align:center;">${c.credits.toFixed(2)}</td>
+              <td style="width:60px; text-align:center;">${g}</td>
+            </tr>
+          `;
+        }
+      }
+    });
+
+    const semSgpa = semSch > 0 ? (semSgp / semSch) : 0;
+    runningCumulativeCredits += semSch;
+    runningCumulativePoints += semSgp;
+    const runningCgpa = runningCumulativeCredits > 0 ? (runningCumulativePoints / runningCumulativeCredits) : 0;
+
+    const termTitle = semNames[semIdx] || `Semester ${sem.sem}`;
+
+    semBlocksHTML += `
+      <div class="uet-pdf-sem-block">
+        <table class="uet-pdf-table">
+          <thead>
+            <tr>
+              <th colspan="4" class="uet-pdf-sem-title-row">${termTitle}</th>
+            </tr>
+            <tr>
+              <th style="width:70px;">Code</th>
+              <th>Title</th>
+              <th style="width:50px; text-align:center;">CH</th>
+              <th style="width:60px; text-align:center;">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${courseRowsHTML || '<tr><td colspan="4" style="text-align:center; color:#666;">No grades recorded</td></tr>'}
+          </tbody>
+        </table>
+        <div class="uet-pdf-summary-box">
+          <div class="uet-pdf-summary-line">
+            <span>SCH: ${semSch.toFixed(2)}</span>
+            <span>SGP: ${semSgp.toFixed(2)}</span>
+            <span>SGPA: ${semSgpa.toFixed(2)}</span>
+          </div>
+          <div class="uet-pdf-summary-line">
+            <span>CCH: ${runningCumulativeCredits.toFixed(2)}</span>
+            <span>CGP: ${runningCumulativePoints.toFixed(2)}</span>
+            <span>CGPA: ${runningCgpa.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Check if there is a corresponding Summer term recorded
+    const summerNum = Math.ceil((semIdx + 1) / 2);
+    if ((semIdx + 1) % 2 === 0) {
+      const summerKey = `summer-${summerNum}`;
+      const summerList = deptSummer[summerKey] || [];
+      if (summerList.length > 0) {
+        let sumSch = 0;
+        let sumSgp = 0;
+        let summerRowsHTML = "";
+
+        summerList.forEach(sc => {
+          if (sc.grade && UET_GRADE_SCALE[sc.grade]) {
+            const cr = parseFloat(sc.credits) || 0;
+            const pts = UET_GRADE_SCALE[sc.grade].points * cr;
+            sumSch += cr;
+            sumSgp += pts;
+            summerRowsHTML += `
+              <tr>
+                <td style="width:70px;">${codePrefix} R</td>
+                <td>${sc.name}</td>
+                <td style="width:50px; text-align:center;">${cr.toFixed(2)}</td>
+                <td style="width:60px; text-align:center;">${sc.grade}</td>
+              </tr>
+            `;
+          }
+        });
+
+        const sumSgpa = sumSch > 0 ? (sumSgp / sumSch) : 0;
+        runningCumulativeCredits += sumSch;
+        runningCumulativePoints += sumSgp;
+        const sumCgpa = runningCumulativeCredits > 0 ? (runningCumulativePoints / runningCumulativeCredits) : 0;
+
+        semBlocksHTML += `
+          <div class="uet-pdf-sem-block">
+            <table class="uet-pdf-table">
+              <thead>
+                <tr>
+                  <th colspan="4" class="uet-pdf-sem-title-row">${summerNames[summerNum - 1] || `Summer ${summerNum}`}</th>
+                </tr>
+                <tr>
+                  <th style="width:70px;">Code</th>
+                  <th>Title</th>
+                  <th style="width:50px; text-align:center;">CH</th>
+                  <th style="width:60px; text-align:center;">Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${summerRowsHTML}
+              </tbody>
+            </table>
+            <div class="uet-pdf-summary-box">
+              <div class="uet-pdf-summary-line">
+                <span>SCH: ${sumSch.toFixed(2)}</span>
+                <span>SGP: ${sumSgp.toFixed(2)}</span>
+                <span>SGPA: ${sumSgpa.toFixed(2)}</span>
+              </div>
+              <div class="uet-pdf-summary-line">
+                <span>CCH: ${runningCumulativeCredits.toFixed(2)}</span>
+                <span>CGP: ${runningCumulativePoints.toFixed(2)}</span>
+                <span>CGPA: ${sumCgpa.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+  });
+
+  const todayStr = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+
+  return `
+    <div class="uet-pdf-header">
+      <h1>University of Engineering & Technology</h1>
+      <h2>Peshawar, Pakistan</h2>
+      <div class="uet-pdf-reg-no">Registration No: ${regNo}</div>
+    </div>
+
+    <div class="uet-pdf-title-banner">TRANSCRIPT</div>
+
+    <div class="uet-pdf-student-info">
+      <div>Student's Name: <span>${studentName}</span></div>
+      <div>Father's Name: <span>${fatherName}</span></div>
+      <div>Program: <span>${dept.name}</span></div>
+      <div>Plan: <span>${dept.name} Major</span></div>
+    </div>
+
+    <div class="uet-pdf-semesters-container">
+      ${semBlocksHTML}
+    </div>
+
+    <div class="uet-pdf-signatures-footer">
+      <div class="uet-pdf-stamp-notice">"The Official Transcript carries the embossed stamp of the University"</div>
+      
+      <div class="uet-pdf-sign-grid">
+        <div>
+          <div>Transcript Prepared By: <span class="uet-pdf-line"></span></div>
+          <div style="margin-top: 8px;">Transcript Checked By: <span class="uet-pdf-line"></span></div>
+          <div style="margin-top: 8px;">Date of issue: <strong>${todayStr}</strong></div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-weight: bold; margin-bottom: 25px;">Controller of Examinations</div>
+          <div>Result Declaration Date : _______________</div>
+        </div>
+      </div>
+      <div style="margin-top: 15px; font-style: italic; text-align: left;">"Errors and Omissions are subject to subsequent rectification"</div>
+    </div>
+  `;
+}
+
+function printOfficialTranscript() {
+  const container = document.getElementById("officialUetTranscriptPrintContainer");
+  container.innerHTML = generateOfficialUetTranscriptHTML();
+  window.print();
+}
+
 // ── Target CGPA Simulator ─────────────────────────────────────────
 function calculateTargetRequired() {
   const currentCgpa = parseFloat(document.getElementById("targetCurrentCgpa").value);
@@ -1080,6 +1342,7 @@ function importDataJSON(e) {
         appState = imported;
         saveStateToStorage();
         setActiveDepartment(appState.selectedDeptId, true);
+        syncStudentProfileInputs();
         toast("Backup data imported successfully!");
       } else {
         toast("Invalid backup JSON format.");
@@ -1089,10 +1352,6 @@ function importDataJSON(e) {
     }
   };
   reader.readAsText(file);
-}
-
-function triggerPrint() {
-  window.print();
 }
 
 // ── Toast System ─────────────────────────────────────────────────
