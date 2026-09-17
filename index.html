@@ -1,174 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UET GPA Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UET GPA & CGPA Master Portal - HTK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Brand Bar -->
-<div class="brand-bar">
-  <div class="brand-left">
-    <div class="htk-logo" style="width:36px;height:36px;font-size:.72rem;border-radius:8px;">HTK</div>
-    <div>
-      <div class="brand-name">UET GPA Calculator</div>
-      <div class="brand-sub">University of Engineering & Technology</div>
+  <div class="app-container">
+    
+    <!-- Top Brand Navbar -->
+    <header class="brand-navbar">
+      <div class="brand-brand">
+        <div class="htk-badge">HTK</div>
+        <div>
+          <div class="brand-title">UET GPA & CGPA Portal</div>
+          <div class="brand-subtitle">University of Engineering & Technology (Official Rules Engine)</div>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="header-btn" onclick="openDeptModal()" id="deptSelectBtn">
+          <span id="headerDeptIcon">🏗️</span>
+          <span id="headerDeptName">Civil Engineering</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <button class="icon-btn" onclick="triggerPrint()" title="Print / Export PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </button>
+        <button class="icon-btn danger" onclick="resetAllData()" title="Reset All Data">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- CGPA Live Overview Widget Bar -->
+    <div class="cgpa-summary-card">
+      <div class="cgpa-metric-main">
+        <div class="cgpa-ring-wrapper">
+          <div class="cgpa-value" id="globalCgpaVal">0.00</div>
+          <div class="cgpa-sublabel">Cumulative CGPA</div>
+        </div>
+        <div class="cgpa-status-badge" id="honorBadge">
+          <span class="pulse-dot"></span>
+          <span id="honorBadgeText">Select grades to calculate</span>
+        </div>
+      </div>
+
+      <div class="cgpa-stats-grid">
+        <div class="mini-stat">
+          <div class="mini-val" id="globalCompletedCredits">0 / 0</div>
+          <div class="mini-lbl">Credits Completed</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="globalCompletedSemesters">0 / 8</div>
+          <div class="mini-lbl">Semesters Graded</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-val" id="globalQualityPoints">0.00</div>
+          <div class="mini-lbl">Total Quality Points</div>
+        </div>
+      </div>
+
+      <!-- CGPA Progress Track -->
+      <div class="cgpa-progress-track">
+        <div class="cgpa-progress-fill" id="globalCgpaBar" style="width: 0%;"></div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Page Title -->
-<div class="page-title">
-  <h1>GPA & CGPA Calculator</h1>
-  <p>Calculate your semester GPA and cumulative CGPA using the UET grading system.</p>
-</div>
-
-<!-- Tab Navigation -->
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('calculator')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
-    GPA Calculator
-  </button>
-  <button class="tab-btn" onclick="switchTab('cgpa')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    CGPA Update
-  </button>
-  <button class="tab-btn" onclick="switchTab('grades')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-    Grade Scale
-  </button>
-</div>
-
-<!-- TAB: Calculator -->
-<div class="card tab-panel active" id="tab-calculator">
-  <div class="three-col-btn">
-    <div style="grid-column:1/3">
-      <label class="field-label">Number of Subjects</label>
-      <input type="number" id="numSubjects" min="1" max="20" placeholder="e.g. 6">
-    </div>
-    <div>
-      <button class="btn btn-primary" onclick="generateFields()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
-        Generate
+    <!-- Main Section Tabs -->
+    <nav class="tab-navigation">
+      <button class="tab-item active" onclick="switchMainTab('department')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Department Presets
       </button>
-    </div>
-  </div>
+      <button class="tab-item" onclick="switchMainTab('transcript')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Full Transcript & Memory
+      </button>
+      <button class="tab-item" onclick="switchMainTab('target')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        CGPA Target Planner
+      </button>
+      <button class="tab-item" onclick="switchMainTab('custom')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+        Custom Subjects
+      </button>
+      <button class="tab-item" onclick="switchMainTab('grading')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Grading Policy & Summer Rules
+      </button>
+    </nav>
 
-  <div id="subjectsContainer" style="margin-top:1.25rem;"></div>
-
-  <hr class="divider">
-
-  <button class="btn btn-success" onclick="calculateGPA()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-    Calculate GPA
-  </button>
-
-  <div id="resultSection" style="margin-top:1.25rem;">
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.4rem;">
-      <div class="result-header"><span></span> Calculation Results</div>
-      <div class="stats-row">
-        <div class="stat">
-          <div class="stat-val c-blue" id="res-gpa">—</div>
-          <div class="stat-lbl">Semester GPA</div>
+    <!-- TAB 1: Department Presets & Calculator -->
+    <main class="tab-content active" id="tab-department">
+      
+      <!-- Department Selector Banner -->
+      <div class="dept-banner-card">
+        <div class="dept-banner-left">
+          <span class="dept-emoji" id="deptBannerIcon">🏗️</span>
+          <div>
+            <h2 id="deptBannerTitle">Civil Engineering</h2>
+            <p id="deptBannerSub">8 Regular Semesters + Summer Semesters Included</p>
+          </div>
         </div>
-        <div class="stat">
-          <div class="stat-val c-amber" id="res-cred">—</div>
-          <div class="stat-lbl">Credit Hours</div>
+        <button class="btn btn-outline" onclick="openDeptModal()">
+          Change Department (16 Available)
+        </button>
+      </div>
+
+      <!-- Semester Selector Pills (Includes Regular + Summer Semesters) -->
+      <div class="semester-pills-scroll" id="semesterPills">
+        <!-- Injected via Javascript -->
+      </div>
+
+      <!-- Active Semester Header & Actions -->
+      <div class="semester-header-bar">
+        <div>
+          <h3 id="activeSemTitle">Semester 1</h3>
+          <span class="sem-subtitle" id="activeSemMeta">8 Courses · 17 Credit Hours Total</span>
         </div>
-        <div class="stat">
-          <div class="stat-val c-green" id="res-cgpa">—</div>
-          <div class="stat-lbl">CGPA</div>
+
+        <div class="batch-grade-actions" id="regularBatchActions">
+          <span class="batch-label">Quick Fill:</span>
+          <button class="pill-btn g-a" onclick="batchSetGrades('A')">All A</button>
+          <button class="pill-btn g-b" onclick="batchSetGrades('B+')">All B+</button>
+          <button class="pill-btn g-c" onclick="batchSetGrades('C')">All C</button>
+          <button class="pill-btn danger" onclick="batchClearGrades()">Clear</button>
         </div>
       </div>
-      <div class="bar-wrap">
-        <div class="bar-meta">
-          <span>0.00</span>
-          <span id="bar-label" style="color:#d1d5db;font-weight:600;">—</span>
-          <span>4.00</span>
+
+      <!-- Summer Semester Banner Notice (Only shown when active semester is Summer) -->
+      <div id="summerInfoNotice" class="summer-notice-card" style="display: none;">
+        <div class="summer-notice-title">☀️ UET Summer Semester Rules</div>
+        <div class="summer-notice-desc">
+          Maximum <strong>8 Credit Hours</strong> allowed per Summer Semester. Use Summer courses to <strong>Retake / Improve low grades</strong> (e.g. F, D, C-) or take advance courses. Retaken grades automatically replace old grades in CGPA calculation.
         </div>
-        <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+        <div class="summer-ch-counter">
+          <span>Summer Credit Hours:</span>
+          <strong id="summerTotalCreditsBadge">0 / 8 CH</strong>
+        </div>
+      </div>
+
+      <!-- Subjects Table / Grid -->
+      <div class="subjects-card">
+        <div class="subjects-table-header" id="subjectsHeaderGrid">
+          <div># & Course Name</div>
+          <div style="text-align: center;">Credits</div>
+          <div style="text-align: center;">Grade</div>
+          <div style="text-align: right;">Quality Points</div>
+        </div>
+        <div id="presetSubjectsContainer" class="subjects-list">
+          <!-- Dynamic course rows injected by script.js -->
+        </div>
+      </div>
+
+      <!-- Summer Add Course Button (Only visible during Summer Semesters) -->
+      <div id="summerControlsBar" style="display: none; margin-top: 1rem;">
+        <button class="btn btn-secondary" onclick="addSummerCourseRow()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Add Course / Grade Repeat to Summer
+        </button>
+      </div>
+
+      <!-- Current Semester Summary Card -->
+      <div class="sem-summary-card">
+        <div class="sem-stat-box">
+          <div class="sem-stat-val" id="semGpaVal">0.00</div>
+          <div class="sem-stat-lbl">Semester GPA</div>
+        </div>
+        <div class="sem-stat-box">
+          <div class="sem-stat-val" id="semCreditsVal">0</div>
+          <div class="sem-stat-lbl">Semester Credits</div>
+        </div>
+        <div class="sem-stat-box">
+          <div class="sem-stat-val" id="semPointsVal">0.00</div>
+          <div class="sem-stat-lbl">Quality Points</div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- TAB 2: Full Transcript & Memory -->
+    <section class="tab-content" id="tab-transcript">
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <h3>Academic Transcript & CGPA History</h3>
+            <p class="muted-text">Includes Regular & Summer Semesters with Grade Replacement (R) Tracking</p>
+          </div>
+          <div class="card-header-actions">
+            <button class="btn btn-secondary btn-sm" onclick="exportDataJSON()">Export Backup (.json)</button>
+            <button class="btn btn-secondary btn-sm" onclick="triggerImportJSON()">Import Backup</button>
+            <input type="file" id="importJsonInput" style="display:none" onchange="importDataJSON(event)">
+          </div>
+        </div>
+
+        <div id="transcriptSemestersGrid" class="transcript-grid">
+          <!-- Injected via JS -->
+        </div>
+
+        <div class="transcript-totals-card">
+          <div class="totals-title">Cumulative Degree Summary</div>
+          <div class="totals-grid">
+            <div>
+              <span class="tot-label">Total Credits Earned:</span>
+              <strong class="tot-val" id="trTotalCredits">0</strong>
+            </div>
+            <div>
+              <span class="tot-label">Total Quality Points:</span>
+              <strong class="tot-val" id="trTotalPoints">0.00</strong>
+            </div>
+            <div>
+              <span class="tot-label">Final Cumulative CGPA:</span>
+              <strong class="tot-val highlight" id="trFinalCgpa">0.00 / 4.00</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Target CGPA Simulator -->
+    <section class="tab-content" id="tab-target">
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <h3>CGPA Target Simulator</h3>
+            <p class="muted-text">Calculate the required GPA in remaining credit hours to hit your target CGPA</p>
+          </div>
+        </div>
+
+        <div class="target-form-grid">
+          <div class="form-group">
+            <label class="field-label">Current CGPA</label>
+            <input type="number" step="0.01" id="targetCurrentCgpa" placeholder="e.g. 3.10">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Current Completed Credits</label>
+            <input type="number" id="targetCompletedCredits" placeholder="e.g. 54">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Desired Target CGPA</label>
+            <input type="number" step="0.01" id="targetDesiredCgpa" placeholder="e.g. 3.50">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Remaining Credit Hours</label>
+            <input type="number" id="targetRemainingCredits" placeholder="e.g. 80">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:1rem;" onclick="calculateTargetRequired()">
+          Calculate Needed GPA
+        </button>
+
+        <div id="targetResultBox" class="target-result-box" style="display:none;">
+          <div class="target-result-val" id="targetRequiredGpa">0.00</div>
+          <div class="target-result-text" id="targetResultDesc">Target analysis will appear here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Custom Subjects Calculator -->
+    <section class="tab-content" id="tab-custom">
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <h3>Custom Semester & Subjects Calculator</h3>
+            <p class="muted-text">Add custom subjects, credit hours, and grades for flexible GPA calculation</p>
+          </div>
+        </div>
+
+        <div class="custom-control-bar">
+          <button class="btn btn-secondary" onclick="addCustomCourseRow()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Subject
+          </button>
+          <button class="btn btn-outline danger" onclick="clearCustomCourses()">Clear Custom Table</button>
+        </div>
+
+        <div id="customSubjectsContainer" class="subjects-list" style="margin-top:1rem;">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Prior CGPA Integrator -->
+        <div class="prior-gpa-box">
+          <h4>Include Previous CGPA (Optional)</h4>
+          <div class="two-col-grid" style="margin-top: 0.5rem;">
+            <div>
+              <label class="field-label">Previous CGPA</label>
+              <input type="number" step="0.01" id="customPrevCgpa" placeholder="e.g. 3.25" oninput="calculateCustomGpa()">
+            </div>
+            <div>
+              <label class="field-label">Previous Credit Hours</label>
+              <input type="number" id="customPrevCredits" placeholder="e.g. 36" oninput="calculateCustomGpa()">
+            </div>
+          </div>
+        </div>
+
+        <div class="sem-summary-card" style="margin-top: 1.5rem;">
+          <div class="sem-stat-box">
+            <div class="sem-stat-val" id="customSemGpa">0.00</div>
+            <div class="sem-stat-lbl">Semester GPA</div>
+          </div>
+          <div class="sem-stat-box">
+            <div class="sem-stat-val" id="customSemCredits">0</div>
+            <div class="sem-stat-lbl">Semester Credits</div>
+          </div>
+          <div class="sem-stat-box">
+            <div class="sem-stat-val" id="customFinalCgpa">0.00</div>
+            <div class="sem-stat-lbl">Updated CGPA</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Grading Policy & Summer Rules -->
+    <section class="tab-content" id="tab-grading">
+      <div class="section-card">
+        <div class="card-header">
+          <div>
+            <h3>Official UET 4.00 Grading Policy & Summer Regulations</h3>
+            <p class="muted-text">Letter grades, grade points, repeating rules, and summer credit limits</p>
+          </div>
+        </div>
+
+        <div class="uet-rules-summary">
+          <div class="rule-box">
+            <h4>☀️ Summer Semester Policy</h4>
+            <ul>
+              <li>Students can register for a maximum of <strong>8 Credit Hours</strong> during a Summer Semester.</li>
+              <li>Summer courses are primarily used for <strong>Grade Improvement (Repeat)</strong> or clearing failed (F) subjects.</li>
+              <li>Withdrawing from a summer subject by the 3rd week results in a "W" grade (no GPA impact).</li>
+            </ul>
+          </div>
+
+          <div class="rule-box">
+            <h4>🔄 Grade Improvement & Replacement (R) Rules</h4>
+            <ul>
+              <li>When a student retakes/improves a course, the new grade <strong>replaces the old grade</strong> in CGPA calculation!</li>
+              <li>The old grade points are removed and replaced by the new grade points, preventing double counting of credit hours.</li>
+              <li>Improved subjects are suffixed with <strong>"R"</strong> on the official UET transcript.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h4 style="margin: 1.5rem 0 0.75rem;">Official UET Letter Grade Scale</h4>
+        <table class="grade-table">
+          <thead>
+            <tr>
+              <th>Letter Grade</th>
+              <th>Grade Points</th>
+              <th>Performance Indicator</th>
+            </tr>
+          </thead>
+          <tbody id="gradeScaleTableBody">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <div class="htk-logo-sm">HTK</div>
+        <div>Designed & Developed by <strong>HTK</strong> for UET Students</div>
+      </div>
+      <div class="footer-right">
+        <span>UET 4.00 System Matrix</span> · <span>Summer Semester & Grade Replacement Rules Engine</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Department Selection Modal -->
+  <div class="modal-overlay" id="deptModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Select Your Department</h3>
+          <p class="muted-text">Choose from 16 UET Engineering & Academic Departments</p>
+        </div>
+        <button class="close-btn" onclick="closeDeptModal()">&times;</button>
+      </div>
+
+      <div class="dept-grid-modal" id="deptModalGrid">
+        <!-- Injected via JS -->
       </div>
     </div>
   </div>
-</div>
 
-<!-- TAB: CGPA Update -->
-<div class="card tab-panel" id="tab-cgpa">
-  <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">
-    Already have a CGPA from previous semesters? Enter your previous CGPA and total credit hours here, then go back to the <strong style="color:var(--text)">GPA Calculator</strong> tab and hit Calculate — your updated CGPA will be computed automatically.
-  </p>
-  <div class="two-col">
-    <div>
-      <label class="field-label">Previous CGPA</label>
-      <input type="number" step="0.01" id="prevGPA" placeholder="e.g. 3.20">
-    </div>
-    <div>
-      <label class="field-label">Previous Total Credit Hours</label>
-      <input type="number" id="prevCredits" placeholder="e.g. 72">
-    </div>
-  </div>
-  <hr class="divider">
-  <div class="info-block">
-    <strong>How CGPA is calculated:</strong><br>
-    CGPA = (Previous CGPA × Previous Credits + Semester Grade Points) ÷ (Previous Credits + Semester Credits)<br><br>
-    Leave both fields blank if you are computing GPA for your first semester only.
-  </div>
-  <button class="btn btn-primary" style="max-width:220px;" onclick="switchTab('calculator')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to Calculator
-  </button>
-</div>
+  <div id="toast"></div>
 
-<!-- TAB: Grade Scale -->
-<div class="card tab-panel" id="tab-grades">
-  <div class="info-block" style="margin-bottom:1.25rem;">
-    UET follows a <strong>4.00 scale</strong> grading system. The table below shows the letter grade to grade point mapping used in all calculations.
-  </div>
-  <table class="grade-table">
-    <thead>
-      <tr>
-        <th>Letter Grade</th>
-        <th>Grade Points</th>
-        <th>Performance</th>
-      </tr>
-    </thead>
-    <tbody id="gradeTableBody"></tbody>
-  </table>
-</div>
-
-<!-- About Section -->
-<div class="about-section">
-  <div class="about-grid">
-    <div class="about-col">
-      <h3>About This Tool</h3>
-      <p>A lightweight academic utility built for students of the University of Engineering & Technology. It helps you quickly calculate your semester GPA and running CGPA using the official UET 4.00 grading scale.</p>
-    </div>
-    <div class="about-col">
-      <h3>Features</h3>
-      <ul>
-        <li>Supports up to 20 subjects per semester</li>
-        <li>Official UET A–F grade point scale</li>
-        <li>Cumulative CGPA with prior semester data</li>
-        <li>Works fully offline in your browser</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<div class="footer">
-  <div class="htk-wrap">
-    <div class="htk-logo">HTK</div>
-    <div class="htk-text">Made by <strong>HTK</strong> &nbsp;·&nbsp; UET GPA Calculator</div>
-  </div>
-  <div class="footer-right">v1.0 &nbsp;·&nbsp; Academic Use Only</div>
-</div>
-
-<div id="toast"></div>
-
-<script src="script.js"></script>
+  <script src="js/departmentsData.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
