@@ -1153,8 +1153,6 @@ function generateOfficialUetTranscriptHTML() {
     return null;
   }
 
-  const todayStr = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-
   return `
     <div class="uet-pdf-header">
       <h1>University of Engineering & Technology</h1>
@@ -1173,23 +1171,6 @@ function generateOfficialUetTranscriptHTML() {
 
     <div class="uet-pdf-semesters-container">
       ${semBlocksHTML}
-    </div>
-
-    <div class="uet-pdf-signatures-footer">
-      <div class="uet-pdf-stamp-notice">"The Official Transcript carries the embossed stamp of the University"</div>
-      
-      <div class="uet-pdf-sign-grid">
-        <div>
-          <div>Transcript Prepared By: <span class="uet-pdf-line"></span></div>
-          <div style="margin-top: 8px;">Transcript Checked By: <span class="uet-pdf-line"></span></div>
-          <div style="margin-top: 8px;">Date of issue: <strong>${todayStr}</strong></div>
-        </div>
-        <div style="text-align: right;">
-          <div style="font-weight: bold; margin-bottom: 25px;">Controller of Examinations</div>
-          <div>Result Declaration Date : _______________</div>
-        </div>
-      </div>
-      <div style="margin-top: 15px; font-style: italic; text-align: left;">"Errors and Omissions are subject to subsequent rectification"</div>
     </div>
   `;
 }
