@@ -13,9 +13,9 @@ let appState = {
   labSplits: {}, // Structure: { [deptId]: { [semIndex]: { [courseIdx]: true } } }
   autoSplitAllLabs: false,
   summerCourses: {},
-  studentName: "Hamza Taif",
-  fatherName: "Taif Ullah",
-  studentRegNo: "25PWSWE0094",
+  studentName: "",
+  fatherName: "",
+  studentRegNo: "",
   customCourses: [
     { name: "Subject 1", credits: 3, grade: "A" },
     { name: "Subject 2", credits: 3, grade: "B+" }
@@ -50,6 +50,9 @@ function loadStateFromStorage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
+      if (parsed.studentName === "Hamza Taif") parsed.studentName = "";
+      if (parsed.fatherName === "Taif Ullah") parsed.fatherName = "";
+      if (parsed.studentRegNo === "25PWSWE0094") parsed.studentRegNo = "";
       appState = { ...appState, ...parsed };
     }
   } catch (e) {
@@ -62,18 +65,18 @@ function syncStudentProfileInputs() {
   const fName = document.getElementById("fatherNameInput");
   const rNo = document.getElementById("regNoInput");
 
-  if (sName) sName.value = appState.studentName || "Hamza Taif";
-  if (fName) fName.value = appState.fatherName || "Taif Ullah";
-  if (rNo) rNo.value = appState.studentRegNo || "25PWSWE0094";
+  if (sName) sName.value = appState.studentName || "";
+  if (fName) fName.value = appState.fatherName || "";
+  if (rNo) rNo.value = appState.studentRegNo || "";
 
   // Also sync modal inputs
   const mName = document.getElementById("modalStudentName");
   const mFname = document.getElementById("modalFatherName");
   const mReg = document.getElementById("modalRegNo");
 
-  if (mName) mName.value = appState.studentName || "Hamza Taif";
-  if (mFname) mFname.value = appState.fatherName || "Taif Ullah";
-  if (mReg) mReg.value = appState.studentRegNo || "25PWSWE0094";
+  if (mName) mName.value = appState.studentName || "";
+  if (mFname) mFname.value = appState.fatherName || "";
+  if (mReg) mReg.value = appState.studentRegNo || "";
 }
 
 function saveStudentProfile() {
@@ -421,7 +424,7 @@ function renderSummerSemesterView() {
               Sem ${p.semNum}: ${p.name} (Prior Grade: ${p.priorGrade || "None"})
             </option>
           `).join("")}
-          <option value="custom" ${!item.replacesSemIdx && item.name ? "selected" : ""}>Custom New Summer Course</option>
+          <option value="custom" ${item.replacesSemIdx === null && item.name ? "selected" : ""}>Custom New Summer Course</option>
         </select>
 
         ${item.replacesSemIdx === null ? `
@@ -926,9 +929,9 @@ function confirmAndPrintTranscript() {
   const mFname = document.getElementById("modalFatherName").value.trim();
   const mReg = document.getElementById("modalRegNo").value.trim();
 
-  appState.studentName = mName || "Hamza Taif";
-  appState.fatherName = mFname || "Taif Ullah";
-  appState.studentRegNo = mReg || "25PWSWE0094";
+  appState.studentName = mName || "";
+  appState.fatherName = mFname || "";
+  appState.studentRegNo = mReg || "";
 
   syncStudentProfileInputs();
   saveStateToStorage();
@@ -954,32 +957,65 @@ function generateOfficialUetTranscriptHTML() {
   const deptSummer = appState.summerCourses[dept.id] || {};
   const deptLabSplits = appState.labSplits[dept.id] || {};
 
-  const studentName = appState.studentName || "Hamza Taif";
-  const fatherName = appState.fatherName || "Taif Ullah";
-  const regNo = appState.studentRegNo || "25PWSWE0094";
+  const studentName = appState.studentName || "";
+  const fatherName = appState.fatherName || "";
+  const regNo = appState.studentRegNo || "";
 
   const semNames = ["Fall 25", "Spring 26", "Fall 26", "Spring 27", "Fall 27", "Spring 28", "Fall 28", "Spring 29", "Fall 29", "Spring 30"];
   const summerNames = ["Summer 26", "Summer 27", "Summer 28", "Summer 29"];
 
   let runningCumulativeCredits = 0;
   let runningCumulativePoints = 0;
-  let gradedSemestersFound = 0;
 
-  let semBlocksHTML = "";
-  const codePrefix = dept.code.startsWith("SE") ? "SE" : (dept.code.startsWith("CS") ? "CS" : "CE");
+  // Find max active/graded semester index
+  let maxSemIdx = -1;
+  dept.semesters.forEach((sem, semIdx) => {
+    const semGrades = deptGrades[semIdx] || {};
+    if (Object.keys(semGrades).some(k => semGrades[k])) {
+      maxSemIdx = Math.max(maxSemIdx, semIdx);
+    }
+    const summerNum = Math.ceil((semIdx + 1) / 2);
+    const summerKey = `summer-${summerNum}`;
+    const summerList = deptSummer[summerKey] || [];
+    if (summerList.length > 0) {
+      maxSemIdx = Math.max(maxSemIdx, semIdx);
+    }
+  });
+
+  // Default to at least semester 1 & 2 if no higher semester is active
+  if (maxSemIdx < 1) maxSemIdx = 1;
+
+  const codePrefix = dept.code || "SE";
+
+  let leftBlocksHTML = "";
+  let rightBlocksHTML = "";
 
   dept.semesters.forEach((sem, semIdx) => {
+    if (semIdx > maxSemIdx && semIdx > 1) return;
+
     const semGrades = deptGrades[semIdx] || {};
     const semLabSplits = deptLabSplits[semIdx] || {};
 
     let semSch = 0;
     let semSgp = 0;
     let courseRowsHTML = "";
-    let gradedCourseCount = 0;
 
     sem.courses.forEach((c, cIdx) => {
       const isSplit = semLabSplits[cIdx] || (appState.autoSplitAllLabs && c.hasLab && c.credits > 1);
-      const baseCode = `${codePrefix} 10${semIdx + 1}${cIdx + 1}`;
+
+      // Determine course code (e.g. SE 101, BSI 101, etc.)
+      let baseCode = c.code || "";
+      if (!baseCode) {
+        const cNameLower = c.name.toLowerCase();
+        if (cNameLower.includes("islamic")) baseCode = "BSI 101";
+        else if (cNameLower.includes("pakistan") || cNameLower.includes("pak studies")) baseCode = "BSI 110";
+        else if (cNameLower.includes("english")) baseCode = "BSI 133";
+        else if (cNameLower.includes("calculus")) baseCode = "BSI 173";
+        else if (cNameLower.includes("linear algebra")) baseCode = "BSI 111";
+        else if (cNameLower.includes("physics")) baseCode = "BSI 123";
+        else if (cNameLower.includes("communication")) baseCode = "BSI 143";
+        else baseCode = `${codePrefix} 10${cIdx + 1}`;
+      }
 
       if (isSplit && c.credits > 1) {
         const thG = semGrades[`${cIdx}_th`] || "";
@@ -988,122 +1024,126 @@ function generateOfficialUetTranscriptHTML() {
         const thCr = c.credits - 1;
         const labCr = 1;
 
-        if (thG) {
-          const pts = (UET_GRADE_SCALE[thG]?.points || 0) * thCr;
+        if (thG && UET_GRADE_SCALE[thG]) {
+          const pts = UET_GRADE_SCALE[thG].points * thCr;
           semSch += thCr;
           semSgp += pts;
-          gradedCourseCount++;
-          courseRowsHTML += `
-            <tr>
-              <td style="width:70px;">${baseCode}</td>
-              <td>${c.name}</td>
-              <td style="width:50px; text-align:center;">${thCr.toFixed(2)}</td>
-              <td style="width:60px; text-align:center;">${thG}</td>
-            </tr>
-          `;
         }
-        if (labG) {
-          const pts = (UET_GRADE_SCALE[labG]?.points || 0) * labCr;
+        courseRowsHTML += `
+          <tr>
+            <td class="uet-pdf-col-code">${baseCode}</td>
+            <td class="uet-pdf-col-title">${c.name}</td>
+            <td class="uet-pdf-col-ch">${thCr.toFixed(2)}</td>
+            <td class="uet-pdf-col-grade">${thG}</td>
+          </tr>
+        `;
+
+        if (labG && UET_GRADE_SCALE[labG]) {
+          const pts = UET_GRADE_SCALE[labG].points * labCr;
           semSch += labCr;
           semSgp += pts;
-          gradedCourseCount++;
-          courseRowsHTML += `
-            <tr>
-              <td style="width:70px;">${baseCode}L</td>
-              <td>${c.name}</td>
-              <td style="width:50px; text-align:center;">${labCr.toFixed(2)}</td>
-              <td style="width:60px; text-align:center;">${labG}</td>
-            </tr>
-          `;
         }
+        courseRowsHTML += `
+          <tr>
+            <td class="uet-pdf-col-code">${baseCode}L</td>
+            <td class="uet-pdf-col-title">${c.name}</td>
+            <td class="uet-pdf-col-ch">${labCr.toFixed(2)}</td>
+            <td class="uet-pdf-col-grade">${labG}</td>
+          </tr>
+        `;
       } else {
         const g = semGrades[cIdx] || "";
-        if (g) {
-          const pts = (UET_GRADE_SCALE[g]?.points || 0) * c.credits;
+        if (g && UET_GRADE_SCALE[g]) {
+          const pts = UET_GRADE_SCALE[g].points * c.credits;
           semSch += c.credits;
           semSgp += pts;
-          gradedCourseCount++;
-          const codeStr = c.isLabOnly ? `${baseCode}L` : baseCode;
-          courseRowsHTML += `
-            <tr>
-              <td style="width:70px;">${codeStr}</td>
-              <td>${c.name}</td>
-              <td style="width:50px; text-align:center;">${c.credits.toFixed(2)}</td>
-              <td style="width:60px; text-align:center;">${g}</td>
-            </tr>
-          `;
         }
+        const codeStr = c.isLabOnly ? `${baseCode}L` : baseCode;
+        courseRowsHTML += `
+          <tr>
+            <td class="uet-pdf-col-code">${codeStr}</td>
+            <td class="uet-pdf-col-title">${c.name}</td>
+            <td class="uet-pdf-col-ch">${c.credits.toFixed(2)}</td>
+            <td class="uet-pdf-col-grade">${g}</td>
+          </tr>
+        `;
       }
     });
 
-    // ONLY INCLUDE SEMESTER BLOCK IF AT LEAST 1 COURSE WAS GRADED
-    if (gradedCourseCount > 0) {
-      gradedSemestersFound++;
-      const semSgpa = semSch > 0 ? (semSgp / semSch) : 0;
-      runningCumulativeCredits += semSch;
-      runningCumulativePoints += semSgp;
-      const runningCgpa = runningCumulativeCredits > 0 ? (runningCumulativePoints / runningCumulativeCredits) : 0;
+    const semSgpa = semSch > 0 ? (semSgp / semSch) : 0;
+    runningCumulativeCredits += semSch;
+    runningCumulativePoints += semSgp;
+    const runningCgpa = runningCumulativeCredits > 0 ? (runningCumulativePoints / runningCumulativeCredits) : 0;
 
-      const termTitle = semNames[semIdx] || `Semester ${sem.sem}`;
+    const termTitle = semNames[semIdx] || `Semester ${sem.sem}`;
 
-      semBlocksHTML += `
-        <div class="uet-pdf-sem-block">
-          <table class="uet-pdf-table">
-            <thead>
-              <tr>
-                <th colspan="4" class="uet-pdf-sem-title-row">${termTitle}</th>
-              </tr>
-              <tr>
-                <th style="width:70px;">Code</th>
-                <th>Title</th>
-                <th style="width:50px; text-align:center;">CH</th>
-                <th style="width:60px; text-align:center;">Grade</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${courseRowsHTML}
-            </tbody>
-          </table>
-          <div class="uet-pdf-summary-box">
-            <div class="uet-pdf-summary-line">
-              <span>SCH: ${semSch.toFixed(2)}</span>
-              <span>SGP: ${semSgp.toFixed(2)}</span>
-              <span>SGPA: ${semSgpa.toFixed(2)}</span>
-            </div>
-            <div class="uet-pdf-summary-line">
-              <span>CCH: ${runningCumulativeCredits.toFixed(2)}</span>
-              <span>CGP: ${runningCumulativePoints.toFixed(2)}</span>
-              <span>CGPA: ${runningCgpa.toFixed(2)}</span>
-            </div>
+    const blockHTML = `
+      <div class="uet-pdf-sem-block">
+        <div class="uet-pdf-sem-header">${termTitle}</div>
+        <table class="uet-pdf-table">
+          <thead>
+            <tr>
+              <th class="uet-pdf-col-code">Code</th>
+              <th class="uet-pdf-col-title">Title</th>
+              <th class="uet-pdf-col-ch">CH</th>
+              <th class="uet-pdf-col-grade">Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${courseRowsHTML}
+          </tbody>
+        </table>
+        <div class="uet-pdf-summary-box">
+          <div class="uet-pdf-sum-line">
+            <span>SCH: <strong>${semSch.toFixed(2)}</strong></span>
+            <span>SGP: <strong>${semSgp.toFixed(2)}</strong></span>
+            <span>SGPA: <strong>${semSgpa.toFixed(2)}</strong></span>
+          </div>
+          <div class="uet-pdf-sum-line">
+            <span>CCH: <strong>${runningCumulativeCredits.toFixed(2)}</strong></span>
+            <span>CGP: <strong>${runningCumulativePoints.toFixed(2)}</strong></span>
+            <span>CGPA: <strong>${runningCgpa.toFixed(2)}</strong></span>
           </div>
         </div>
-      `;
+      </div>
+    `;
+
+    if (semIdx % 2 === 0) {
+      leftBlocksHTML += blockHTML;
+    } else {
+      rightBlocksHTML += blockHTML;
     }
 
-    // Check Summer terms
+    // Check Summer term after even semester
     const summerNum = Math.ceil((semIdx + 1) / 2);
     if ((semIdx + 1) % 2 === 0) {
       const summerKey = `summer-${summerNum}`;
       const summerList = deptSummer[summerKey] || [];
-      const gradedSummerList = summerList.filter(sc => sc.grade && UET_GRADE_SCALE[sc.grade]);
 
-      if (gradedSummerList.length > 0) {
-        gradedSemestersFound++;
+      if (summerList.length > 0) {
         let sumSch = 0;
         let sumSgp = 0;
         let summerRowsHTML = "";
 
-        gradedSummerList.forEach(sc => {
+        summerList.forEach(sc => {
           const cr = parseFloat(sc.credits) || 0;
-          const pts = UET_GRADE_SCALE[sc.grade].points * cr;
-          sumSch += cr;
-          sumSgp += pts;
+          const g = sc.grade || "";
+          if (g && UET_GRADE_SCALE[g]) {
+            const pts = UET_GRADE_SCALE[g].points * cr;
+            sumSch += cr;
+            sumSgp += pts;
+          }
+          let scCode = "BSI 173";
+          const scNameLower = sc.name.toLowerCase();
+          if (!scNameLower.includes("calculus")) {
+            scCode = `${codePrefix} R`;
+          }
           summerRowsHTML += `
             <tr>
-              <td style="width:70px;">${codePrefix} R</td>
-              <td>${sc.name}</td>
-              <td style="width:50px; text-align:center;">${cr.toFixed(2)}</td>
-              <td style="width:60px; text-align:center;">${sc.grade}</td>
+              <td class="uet-pdf-col-code">${scCode}</td>
+              <td class="uet-pdf-col-title">${sc.name}</td>
+              <td class="uet-pdf-col-ch">${cr.toFixed(2)}</td>
+              <td class="uet-pdf-col-grade">${g}</td>
             </tr>
           `;
         });
@@ -1113,18 +1153,16 @@ function generateOfficialUetTranscriptHTML() {
         runningCumulativePoints += sumSgp;
         const sumCgpa = runningCumulativeCredits > 0 ? (runningCumulativePoints / runningCumulativeCredits) : 0;
 
-        semBlocksHTML += `
+        const summerBlockHTML = `
           <div class="uet-pdf-sem-block">
+            <div class="uet-pdf-sem-header">${summerNames[summerNum - 1] || `Summer ${summerNum}`}</div>
             <table class="uet-pdf-table">
               <thead>
                 <tr>
-                  <th colspan="4" class="uet-pdf-sem-title-row">${summerNames[summerNum - 1] || `Summer ${summerNum}`}</th>
-                </tr>
-                <tr>
-                  <th style="width:70px;">Code</th>
-                  <th>Title</th>
-                  <th style="width:50px; text-align:center;">CH</th>
-                  <th style="width:60px; text-align:center;">Grade</th>
+                  <th class="uet-pdf-col-code">Code</th>
+                  <th class="uet-pdf-col-title">Title</th>
+                  <th class="uet-pdf-col-ch">CH</th>
+                  <th class="uet-pdf-col-grade">Grade</th>
                 </tr>
               </thead>
               <tbody>
@@ -1132,45 +1170,52 @@ function generateOfficialUetTranscriptHTML() {
               </tbody>
             </table>
             <div class="uet-pdf-summary-box">
-              <div class="uet-pdf-summary-line">
-                <span>SCH: ${sumSch.toFixed(2)}</span>
-                <span>SGP: ${sumSgp.toFixed(2)}</span>
-                <span>SGPA: ${sumSgpa.toFixed(2)}</span>
+              <div class="uet-pdf-sum-line">
+                <span>SCH: <strong>${sumSch.toFixed(2)}</strong></span>
+                <span>SGP: <strong>${sumSgp.toFixed(2)}</strong></span>
+                <span>SGPA: <strong>${sumSgpa.toFixed(2)}</strong></span>
               </div>
-              <div class="uet-pdf-summary-line">
-                <span>CCH: ${runningCumulativeCredits.toFixed(2)}</span>
-                <span>CGP: ${runningCumulativePoints.toFixed(2)}</span>
-                <span>CGPA: ${sumCgpa.toFixed(2)}</span>
+              <div class="uet-pdf-sum-line">
+                <span>CCH: <strong>${runningCumulativeCredits.toFixed(2)}</strong></span>
+                <span>CGP: <strong>${runningCumulativePoints.toFixed(2)}</strong></span>
+                <span>CGPA: <strong>${sumCgpa.toFixed(2)}</strong></span>
               </div>
             </div>
           </div>
         `;
+
+        rightBlocksHTML += summerBlockHTML;
       }
     }
   });
 
-  if (gradedSemestersFound === 0) {
-    return null;
-  }
-
   return `
     <div class="uet-pdf-header">
-      <h1>University of Engineering & Technology</h1>
-      <h2>Peshawar, Pakistan</h2>
-      <div class="uet-pdf-reg-no">Registration No: ${regNo}</div>
+      <div class="uet-pdf-univ-name">University of Engineering & Technology</div>
+      <div class="uet-pdf-univ-sub">Peshawar, Pakistan</div>
+      <div class="uet-pdf-reg-no">Registration No: <strong>${regNo}</strong></div>
     </div>
 
     <div class="uet-pdf-title-banner">TRANSCRIPT</div>
 
     <div class="uet-pdf-student-info">
-      <div>Student's Name: <span>${studentName}</span></div>
-      <div>Father's Name: <span>${fatherName}</span></div>
-      <div>Program: <span>${dept.name}</span></div>
-      <div>Plan: <span>${dept.name} Major</span></div>
+      <div class="uet-pdf-info-row">
+        <div class="uet-pdf-info-cell"><strong>Student's Name:</strong> ${studentName}</div>
+        <div class="uet-pdf-info-cell"><strong>Father's Name:</strong> ${fatherName}</div>
+      </div>
+      <div class="uet-pdf-info-row">
+        <div class="uet-pdf-info-cell"><strong>Program:</strong> ${dept.name}</div>
+        <div class="uet-pdf-info-cell"></div>
+      </div>
+      <div class="uet-pdf-info-row">
+        <div class="uet-pdf-info-cell"><strong>Plan:</strong> ${dept.name} Major</div>
+        <div class="uet-pdf-info-cell"></div>
+      </div>
     </div>
 
     <div class="uet-pdf-semesters-container">
-      ${semBlocksHTML}
+      <div class="uet-pdf-column">${leftBlocksHTML}</div>
+      <div class="uet-pdf-column">${rightBlocksHTML}</div>
     </div>
   `;
 }
