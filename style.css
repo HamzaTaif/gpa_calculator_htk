@@ -375,12 +375,19 @@ body {
   gap: 14px;
 }
 
-.dept-emoji {
-  font-size: 2.2rem;
-  background: var(--surface2);
-  padding: 0.5rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+.dept-code-pill {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  min-width: 45px;
 }
 
 .dept-banner-left h2 {
@@ -1225,8 +1232,19 @@ input[type="number"]:focus, input[type="text"]:focus {
   border-color: var(--primary);
 }
 
-.dept-opt-icon {
-  font-size: 1.6rem;
+.dept-code-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  text-transform: uppercase;
 }
 
 .dept-opt-name {

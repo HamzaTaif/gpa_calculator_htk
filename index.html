@@ -26,7 +26,7 @@
       
       <div class="header-actions">
         <button class="header-btn" onclick="openDeptModal()" id="deptSelectBtn">
-          <span id="headerDeptIcon">🏗️</span>
+          <span id="headerDeptIcon" class="dept-code-badge">CE</span>
           <span id="headerDeptName">Civil Engineering</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -104,7 +104,7 @@
       <!-- Department Selector Banner -->
       <div class="dept-banner-card">
         <div class="dept-banner-left">
-          <span class="dept-emoji" id="deptBannerIcon">🏗️</span>
+          <span class="dept-code-pill" id="deptBannerIcon">CE</span>
           <div>
             <h2 id="deptBannerTitle">Civil Engineering</h2>
             <p id="deptBannerSub">8 Regular Semesters + Summer Semesters Included</p>
@@ -138,7 +138,7 @@
 
       <!-- Summer Semester Banner Notice -->
       <div id="summerInfoNotice" class="summer-notice-card" style="display: none;">
-        <div class="summer-notice-title">☀️ UET Summer Semester Rules</div>
+        <div class="summer-notice-title">UET Summer Semester Rules</div>
         <div class="summer-notice-desc">
           Maximum <strong>8 Credit Hours</strong> allowed per Summer Semester. Use Summer courses to <strong>Retake / Improve low grades</strong> (e.g. F, D, C-) or take advance courses. Retaken grades automatically replace old grades in CGPA calculation.
         </div>
@@ -197,7 +197,7 @@
           </div>
           <div class="card-header-actions">
             <button class="btn btn-primary btn-sm" onclick="openPrintModal()">
-              🖨️ Print Official Transcript PDF
+              Print Official Transcript PDF
             </button>
             <button class="btn btn-secondary btn-sm" onclick="exportDataJSON()">Export Backup (.json)</button>
             <button class="btn btn-secondary btn-sm" onclick="triggerImportJSON()">Import Backup</button>
@@ -354,7 +354,7 @@
 
         <div class="uet-rules-summary">
           <div class="rule-box">
-            <h4>☀️ Summer Semester Policy</h4>
+            <h4>Summer Semester Policy</h4>
             <ul>
               <li>Students can register for a maximum of <strong>8 Credit Hours</strong> during a Summer Semester.</li>
               <li>Summer courses are primarily used for <strong>Grade Improvement (Repeat)</strong> or clearing failed (F) subjects.</li>
@@ -363,7 +363,7 @@
           </div>
 
           <div class="rule-box">
-            <h4>🔄 Grade Improvement & Replacement (R) Rules</h4>
+            <h4>Grade Improvement & Replacement (R) Rules</h4>
             <ul>
               <li>When a student retakes/improves a course, the new grade <strong>replaces the old grade</strong> in CGPA calculation!</li>
               <li>The old grade points are removed and replaced by the new grade points, preventing double counting of credit hours.</li>
@@ -444,13 +444,13 @@
         </div>
 
         <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;">
-          ℹ️ <strong>Note:</strong> The printed transcript will include <strong>only graded semesters/courses</strong> where you entered results. Empty ungraded semesters are automatically excluded.
+          <strong>Note:</strong> The printed transcript will include <strong>only graded semesters/courses</strong> where you entered results. Empty ungraded semesters are automatically excluded.
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 0.5rem;">
           <button class="btn btn-outline" onclick="closePrintModal()">Cancel</button>
           <button class="btn btn-primary" onclick="confirmAndPrintTranscript()">
-            🖨️ Confirm & Print Transcript
+            Confirm & Print Transcript
           </button>
         </div>
       </div>

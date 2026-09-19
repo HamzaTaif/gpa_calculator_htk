@@ -118,11 +118,11 @@ function setActiveDepartment(deptId, forceRender = true) {
   appState.activeSemKey = "sem-0";
 
   // Update Header UI
-  document.getElementById("headerDeptIcon").textContent = dept.icon;
+  document.getElementById("headerDeptIcon").textContent = dept.code;
   document.getElementById("headerDeptName").textContent = dept.name;
   
   // Update Banner UI
-  document.getElementById("deptBannerIcon").textContent = dept.icon;
+  document.getElementById("deptBannerIcon").textContent = dept.code;
   document.getElementById("deptBannerTitle").textContent = dept.name;
   document.getElementById("deptBannerSub").textContent = `${dept.semesters.length} Regular Semesters + Summer Terms Pre-loaded`;
 
@@ -169,7 +169,7 @@ function renderSemesterPills() {
 
       const summerList = deptSummer[summerKey] || [];
       summerBtn.innerHTML = `
-        <span>☀️ Summer ${summerNum}</span>
+        <span>Summer ${summerNum}</span>
         <span class="sem-badge">${summerList.length}</span>
       `;
       pillsContainer.appendChild(summerBtn);
@@ -430,7 +430,7 @@ function renderSummerSemesterView() {
         ${item.replacesSemIdx === null ? `
           <input type="text" value="${item.name || ''}" placeholder="Course Name" style="padding:0.35rem 0.6rem; font-size:0.8rem;" oninput="updateSummerCourse(${itemIdx}, 'name', this.value)">
         ` : `
-          <span class="repeat-badge">🔄 Retaking & Replacing Prior Grade</span>
+          <span class="repeat-badge">Retaking & Replacing Prior Grade</span>
         `}
       </div>
       <div>
@@ -892,7 +892,7 @@ function renderTranscript() {
     summerCard.className = "tr-sem-card summer-tr-card";
     summerCard.innerHTML = `
       <div class="tr-sem-header">
-        <span style="color:#facc15;">☀️ Summer ${summerNum}</span>
+        <span>Summer ${summerNum}</span>
         <span class="tr-sem-gpa" style="color:#facc15;">${sCredits > 0 ? sGpa.toFixed(2) : "N/A"}</span>
       </div>
       <div class="tr-sem-meta">
@@ -1361,7 +1361,7 @@ function renderDeptModalGrid() {
     };
 
     card.innerHTML = `
-      <span class="dept-opt-icon">${dept.icon}</span>
+      <span class="dept-code-badge">${dept.code}</span>
       <div>
         <div class="dept-opt-name">${dept.name}</div>
         <div class="dept-opt-code">${dept.code} · ${dept.semesters.length} Semesters</div>
