@@ -947,7 +947,12 @@ function confirmAndPrintTranscript() {
 
   container.innerHTML = html;
   closePrintModal();
+  const origTitle = document.title;
+  document.title = "";
   window.print();
+  setTimeout(() => {
+    document.title = origTitle;
+  }, 500);
 }
 
 // ── OFFICIAL UET TRANSCRIPT GENERATOR (SSR_TSRPT.pdf - GRADED COURSES ONLY) ──
